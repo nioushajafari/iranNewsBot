@@ -1,4 +1,4 @@
 C_KEY = "oKrEvhu4k7OGknuFPCThYcpri"
 C_SECRET = "jFASkugNFkRpF7ukW6INuQD8yOofOOfYbwWy5ImCWmxYS6o0zf"
-A_TOKEN = ""
+A_TOKEN = "3846407656-ugiad6oIFVmshQfMGPFan3wxVCQfn6IKO4bafia"
 A_TOKEN_SECRET = ""
