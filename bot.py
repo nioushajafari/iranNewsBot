@@ -1,13 +1,18 @@
+from html.parser import HTMLParser
 import os
 import tweepy
 from time import gmtime, strftime
-
+import urllib
 from secrets import *
+from bs4 import BeautifulSoup
 
 auth = tweepy.OAuthHandler(C_KEY, C_SECRET)
 auth.set_access_token(A_TOKEN, A_TOKEN_SECRET)
 api = tweepy.API(auth)
 
+#Molly what does this do?
+tweets = api.user_timeline('IranNewsBot')
+hparser = HTMLParser.HTMLParser()
 
 # ====== Individual bot configuration ==========================
 bot_username = 'IranNewsBot'
@@ -16,28 +21,70 @@ logfile_name = bot_username + ".log"
 # ==============================================================
 
 
-def create_tweet():
-    """Create the text of the tweet you want to send."""
-    # Replace this with your code!
-    text = "Hello World"
-    return text
-
-
-def tweet(text):
-    """Send out the text as a tweet."""
-    # Twitter authentication
-    auth = tweepy.OAuthHandler(C_KEY, C_SECRET)
-    auth.set_access_token(A_TOKEN, A_TOKEN_SECRET)
-    api = tweepy.API(auth)
-
-    # Send the tweet and log success or failure
+def get():
     try:
-        api.update_status(text)
-    except tweepy.error.TweepError as e:
-        log(e.message)
-    else:
-        log("Tweeted: " + text)
+        request = urllib.Request(
+            "http://news.google.com/news?pz=1&cf=all&ned=us&hl=en&output=rss")
+        response = urllib2.urlopen(request)
+    except urllib.URLError as e:
+        print (e.reason)
 
+    else:
+        html = BeautifulSoup(response.read())
+        items = html.find_all('item')
+        for item in items:
+            headline = item.title.string
+            h_split = headline.split()
+
+            # We don't want to use incomplete headlines
+            if "..." in headline:
+                continue
+
+            # Try to weed out all-caps headlines
+            if count_caps(h_split) >= len(h_split) - 3:
+                continue
+
+            # Remove attribution string
+            if "-" in headline:
+                headline = headline.split("-")[:-1]
+                headline = ' '.join(headline).strip()
+
+            if process(headline):
+                break
+            else:
+                continue
+
+def process(headline):
+    headline = hparser.unescape(headline).strip()
+
+    # Don't tweet anything that's too long
+    if len(headline) > 140:
+        return False
+
+    # Don't tweet anything Iran isn't mentioned in
+    if "Iran" not in headline:
+        return False
+
+    else:
+        return tweet(headline)
+
+
+def tweet(headline):
+    # Check that we haven't tweeted this before
+    for tweet in tweets:
+        if headline == tweet.text:
+            return False
+
+    # Post tweet
+    api.update_status(headline)
+    return True
+
+def count_caps(headline):
+    count = 0
+    for word in headline:
+        if word[0].isupper():
+            count += 1
+    return count
 
 def log(message):
     """Log message to logfile."""
@@ -46,7 +93,5 @@ def log(message):
         t = strftime("%d %b %Y %H:%M:%S", gmtime())
         f.write("\n" + t + " " + message)
 
-
 if __name__ == "__main__":
-    tweet_text = create_tweet()
-    tweet(tweet_text)
+    get()
