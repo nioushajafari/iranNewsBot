@@ -1,17 +1,16 @@
-from html.parser import HTMLParser
 import os
+import urllib2
 import tweepy
 from time import gmtime, strftime
-import urllib2
 from secrets import *
 from bs4 import BeautifulSoup
+hparser = HTMLParser.HTMLParser()
 
 auth = tweepy.OAuthHandler(C_KEY, C_SECRET)
 auth.set_access_token(A_TOKEN, A_TOKEN_SECRET)
 api = tweepy.API(auth)
 
 tweets = api.user_timeline('IranNewsBot')
-hparser = HTMLParser.HTMLParser()
 
 # ====== Individual bot configuration ==========================
 bot_username = 'IranNewsBot'
