@@ -1,14 +1,15 @@
+import HTMLParser
 import os
 import urllib2
 import tweepy
 from time import gmtime, strftime
 from secrets import *
 from bs4 import BeautifulSoup
-hparser = HTMLParser.HTMLParser()
 
 auth = tweepy.OAuthHandler(C_KEY, C_SECRET)
 auth.set_access_token(A_TOKEN, A_TOKEN_SECRET)
 api = tweepy.API(auth)
+hparser = HTMLParser.HTMLParser()
 
 tweets = api.user_timeline('IranNewsBot')
 
