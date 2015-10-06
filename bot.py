@@ -2,7 +2,7 @@ from html.parser import HTMLParser
 import os
 import tweepy
 from time import gmtime, strftime
-import urllib
+import urllib2
 from secrets import *
 from bs4 import BeautifulSoup
 
@@ -10,7 +10,6 @@ auth = tweepy.OAuthHandler(C_KEY, C_SECRET)
 auth.set_access_token(A_TOKEN, A_TOKEN_SECRET)
 api = tweepy.API(auth)
 
-#Molly what does this do?
 tweets = api.user_timeline('IranNewsBot')
 hparser = HTMLParser.HTMLParser()
 
@@ -22,37 +21,43 @@ logfile_name = bot_username + ".log"
 
 
 def get():
-    try:
-        request = urllib.Request(
-            "http://news.google.com/news?pz=1&cf=all&ned=us&hl=en&output=rss")
-        response = urllib2.urlopen(request)
-    except urllib.URLError as e:
-        print (e.reason)
+     # Get the headlines, iterate through them to try to find a suitable one
+    page = 1
+    while page <= 3:
+        try:
+            request = urllib2.Request(
+                "http://content.guardianapis.com/search?format=json&page-size=50&page=" +
+                str(page) + "&api-key" + GUARDIAN_KEY)
 
-    else:
-        html = BeautifulSoup(response.read())
-        items = html.find_all('item')
-        for item in items:
-            headline = item.title.string
-            h_split = headline.split()
+            response = urllib2.urlopen(request)
 
-            # We don't want to use incomplete headlines
-            if "..." in headline:
-                continue
+        except urllib2.URLError as e:
+            print(e.reason)
 
-            # Try to weed out all-caps headlines
-            if count_caps(h_split) >= len(h_split) - 3:
-                continue
+        else:
+            html = BeautifulSoup(response.read())
+            items = html.find_all('item')
+            for item in items:
+                headline = item.title.string
+                h_split = headline.split()
 
-            # Remove attribution string
-            if "-" in headline:
-                headline = headline.split("-")[:-1]
-                headline = ' '.join(headline).strip()
+                # We don't want to use incomplete headlines
+                if "..." in headline:
+                    continue
 
-            if process(headline):
-                break
-            else:
-                continue
+                # Try to weed out all-caps headlines
+                if count_caps(h_split) >= len(h_split) - 3:
+                    continue
+
+                # Remove attribution string
+                if "-" in headline:
+                    headline = headline.split("-")[:-1]
+                    headline = ' '.join(headline).strip()
+
+                if process(headline):
+                    break
+                else:
+                    continue
 
 def process(headline):
     headline = hparser.unescape(headline).strip()
