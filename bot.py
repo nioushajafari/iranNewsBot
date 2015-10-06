@@ -6,29 +6,32 @@ from time import gmtime, strftime
 from secrets import *
 from bs4 import BeautifulSoup
 
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+hparser = HTMLParser.HTMLParser()
+
 auth = tweepy.OAuthHandler(C_KEY, C_SECRET)
 auth.set_access_token(A_TOKEN, A_TOKEN_SECRET)
 api = tweepy.API(auth)
-hparser = HTMLParser.HTMLParser()
-
 tweets = api.user_timeline('IranNewsBot')
+
 
 # ====== Individual bot configuration ==========================
 bot_username = 'IranNewsBot'
 logfile_name = bot_username + ".log"
 
+
 # ==============================================================
 
 
 def get():
-     # Get the headlines, iterate through them to try to find a suitable one
+    # Get the headlines, iterate through them to try to find a suitable one
     page = 1
     while page <= 3:
         try:
             request = urllib2.Request(
                 "http://content.guardianapis.com/search?format=json&page-size=50&page=" +
                 str(page) + "&api-key" + GUARDIAN_KEY)
-
             response = urllib2.urlopen(request)
 
         except urllib2.URLError as e:
@@ -59,6 +62,7 @@ def get():
                 else:
                     continue
 
+
 def process(headline):
     headline = hparser.unescape(headline).strip()
 
@@ -67,7 +71,7 @@ def process(headline):
         return False
 
     # Don't tweet anything Iran isn't mentioned in
-    if "Iran" not in headline:
+    if "The" not in headline:
         return False
 
     else:
@@ -84,6 +88,7 @@ def tweet(headline):
     api.update_status(headline)
     return True
 
+
 def count_caps(headline):
     count = 0
     for word in headline:
@@ -91,12 +96,14 @@ def count_caps(headline):
             count += 1
     return count
 
+
 def log(message):
     """Log message to logfile."""
     path = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     with open(os.path.join(path, logfile_name), 'a+') as f:
         t = strftime("%d %b %Y %H:%M:%S", gmtime())
         f.write("\n" + t + " " + message)
+
 
 if __name__ == "__main__":
     get()
