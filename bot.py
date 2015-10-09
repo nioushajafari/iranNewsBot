@@ -34,14 +34,18 @@ def get():
                 "http://content.guardianapis.com/search?format=json&page-size=50&page=" +
                 str(page) + "&api-key=" + GUARDIAN_KEY)
             response = urllib2.urlopen(request)
+            print("got the response")
 
         except urllib2.URLError as e:
             print(e.reason)
 
         else:
+            print("we're in else")
             html = BeautifulSoup(response.read(), "lxml")
             items = html.find_all('item')
             for item in items:
+                print("in the items")
+                print(item)
                 headline = item.title.string
                 h_split = headline.split()
 
@@ -60,23 +64,35 @@ def get():
 
                 if process(headline):
                     break
+
                 else:
                     page += 1
-                    continue
+
+        page += 1
+
+    # Log that no tweet could be made
+    f = open(os.path.join(__location__, "IranNewsBot.log"), 'a')
+    t = strftime("%d %b %Y %H:%M:%S", gmtime())
+    f.write("\n" + t + " No possible tweet.")
+    f.close()
 
 
 def process(headline):
     headline = hparser.unescape(headline).strip()
 
+    print("processing")
     # Don't tweet anything that's too long
     if len(headline) > 140:
         return False
 
+
     # Don't tweet anything Iran isn't mentioned in
     if "a" not in headline:
+        print("didn't find a")
         return False
 
     else:
+        print("off to tweet")
         return tweet(headline)
 
 
