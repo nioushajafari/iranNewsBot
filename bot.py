@@ -73,7 +73,7 @@ def process(headline):
         return False
 
     # Don't tweet anything Iran isn't mentioned in
-    if "The" not in headline:
+    if "the" not in headline:
         return False
 
     else:
