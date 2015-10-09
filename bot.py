@@ -32,14 +32,14 @@ def get():
         try:
             request = urllib2.Request(
                 "http://content.guardianapis.com/search?format=json&page-size=50&page=" +
-                str(page) + "&api-key" + GUARDIAN_KEY)
+                str(page) + "&api-key=" + GUARDIAN_KEY)
             response = urllib2.urlopen(request)
 
         except urllib2.URLError as e:
             print(e.reason)
 
         else:
-            html = BeautifulSoup(response.read())
+            html = BeautifulSoup(response.read(), "lxml")
             items = html.find_all('item')
             for item in items:
                 headline = item.title.string
@@ -61,6 +61,7 @@ def get():
                 if process(headline):
                     break
                 else:
+                    page += 1
                     continue
 
 
@@ -86,11 +87,10 @@ def tweet(headline):
             return False
 
     # Log tweet to file
-    f = codecs.open(os.path.join(__location__, "iranNewsBot.log"), 'a', encoding='utf-8')
+    f = codecs.open(os.path.join(__location__, "IranNewsBot.log"), 'a', encoding='utf-8')
     t = strftime("%d %b %Y %H:%M:%S", gmtime())
     f.write("\n" + t + " " + headline)
     f.close()
-
 
     # Post tweet
     api.update_status(headline)
