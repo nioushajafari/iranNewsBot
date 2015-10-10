@@ -42,7 +42,9 @@ def get():
         else:
             print("we're in else")
             html = BeautifulSoup(response.read(), "lxml")
-            items = html.find_all('item')
+            print(html)
+            items = html.find_all('webTitle')
+            print(items)
             for item in items:
                 print("in the items")
                 print(item)
