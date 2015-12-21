@@ -3,6 +3,7 @@ import HTMLParser
 import os
 import urllib2
 import tweepy
+import json
 from time import gmtime, strftime
 from secrets import *
 from bs4 import BeautifulSoup
@@ -41,9 +42,8 @@ def get():
 
         else:
             print("we're in else")
-            html = BeautifulSoup(response.read(), "lxml")
-            print(html)
-            items = html.find_all('webTitle')
+            items = json.loads(response.read());
+            print("about to go to items")
             print(items)
             for item in items:
                 print("in the items")
