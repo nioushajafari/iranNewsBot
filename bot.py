@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 import codecs
+import sys
 import HTMLParser
 import os
 import urllib2
@@ -7,6 +9,8 @@ import json
 from time import gmtime, strftime
 from secrets import *
 from bs4 import BeautifulSoup
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -45,12 +49,13 @@ def get():
             items = json.loads(response.read());
             print("about to go to items")
             print(items)
-            for item in items:
+            for item in items['response']['results']:
                 print("in the items")
                 print(item)
-                headline = item.title.string
+                headline = item['webTitle'].encode('utf-8', 'ignore')
                 h_split = headline.split()
-
+                print(h_split)
+                
                 # We don't want to use incomplete headlines
                 if "..." in headline:
                     continue
@@ -65,7 +70,7 @@ def get():
                     headline = ' '.join(headline).strip()
 
                 if process(headline):
-                    break
+                    return
 
                 else:
                     page += 1
@@ -80,22 +85,12 @@ def get():
 
 
 def process(headline):
-    headline = hparser.unescape(headline).strip()
 
-    print("processing")
-    # Don't tweet anything that's too long
-    if len(headline) > 140:
-        return False
-
-
-    # Don't tweet anything Iran isn't mentioned in
-    if "a" not in headline:
-        print("didn't find a")
-        return False
+    if "Iran" in headline:
+        return tweet(headline)
 
     else:
-        print("off to tweet")
-        return tweet(headline)
+        return False
 
 
 def tweet(headline):
@@ -105,13 +100,13 @@ def tweet(headline):
             return False
 
     # Log tweet to file
-    f = codecs.open(os.path.join(__location__, "IranNewsBot.log"), 'a', encoding='utf-8')
+    f = open(os.path.join(__location__, "IranNewsBot.log"), 'a')
     t = strftime("%d %b %Y %H:%M:%S", gmtime())
-    f.write("\n" + t + " " + headline)
+    f.write(("\n" + t + " " + headline).encode('utf-8', 'ignore'))
     f.close()
 
     # Post tweet
-    api.update_status(headline)
+    api.update_status(status=headline)
     return True
 
 
