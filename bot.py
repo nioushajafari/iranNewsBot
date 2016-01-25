@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import codecs
 import sys
 import HTMLParser
 import os
@@ -8,7 +7,6 @@ import tweepy
 import json
 from time import gmtime, strftime
 from secrets import *
-from bs4 import BeautifulSoup
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -39,23 +37,16 @@ def get():
                 "http://content.guardianapis.com/search?format=json&page-size=50&page=" +
                 str(page) + "&api-key=" + GUARDIAN_KEY)
             response = urllib2.urlopen(request)
-            print("got the response")
 
         except urllib2.URLError as e:
             print(e.reason)
 
         else:
-            print("we're in else")
             items = json.loads(response.read());
-            print("about to go to items")
-            print(items)
             for item in items['response']['results']:
-                print("in the items")
-                print(item)
                 headline = item['webTitle'].encode('utf-8', 'ignore')
                 h_split = headline.split()
-                print(h_split)
-                
+
                 # We don't want to use incomplete headlines
                 if "..." in headline:
                     continue
@@ -86,6 +77,11 @@ def get():
 
 def process(headline):
 
+    # Don't tweet anything that's too long
+    if len(headline) > 140:
+        return False
+
+    # only tweet if Iran is mentioned
     if "Iran" in headline:
         return tweet(headline)
 
